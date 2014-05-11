@@ -21,8 +21,8 @@ public class SafeStoreGui extends Application{
 		SettingView settingView = new SettingView();
 		
 		Group group = new Group();
-		//group.getChildren().add(entryView);
-		group.getChildren().add(settingView);
+		group.getChildren().add(entryView);
+		//group.getChildren().add(settingView);
 		
 		Scene scene = new Scene(group, width, height);
 		
