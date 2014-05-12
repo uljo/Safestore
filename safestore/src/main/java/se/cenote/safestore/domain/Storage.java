@@ -27,7 +27,10 @@ public class Storage {
 			for(Entry entry : entries){
 				writer.write(entry.getName() + ", ");
 				writer.write(entry.getUsername() + ", ");
-				String base64 = asBase64(entry.getPwd());
+				
+				//String base64 = asBase64(entry.getPwd());
+				String base64 = CryptoManager.encrypt(entry.getPwd());
+				
 				writer.write(base64 + "\n");
 			}
 		}
@@ -58,9 +61,10 @@ public class Storage {
 					String[] parts = row.split(",");
 					String name = parts[0].trim();
 					String user = parts[1].trim();
-					String base64 = parts[2].trim();
+					String data = parts[2].trim();
 					
-					byte[] pwd = asBytes(base64);
+					//byte[] pwd = asBytes(data);
+					byte[] pwd = CryptoManager.decrypt(data);
 					
 					Entry entry = new Entry(name, user, pwd);
 					list.add(entry);
@@ -81,14 +85,6 @@ public class Storage {
 		}
 		
 		return list;
-	}
-	
-	private byte[] asBytes(String base64){
-		return Base64.getDecoder().decode(base64);
-	}
-
-	private String asBase64(byte[] pwd) {
-		return Base64.getEncoder().encodeToString(pwd);
 	}
 
 }
