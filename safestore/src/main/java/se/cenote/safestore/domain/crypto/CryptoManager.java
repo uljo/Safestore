@@ -1,4 +1,4 @@
-package se.cenote.safestore.domain;
+package se.cenote.safestore.domain.crypto;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.AlgorithmParameters;
