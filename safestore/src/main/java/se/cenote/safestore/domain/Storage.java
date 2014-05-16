@@ -7,8 +7,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
+
+import se.cenote.safestore.domain.crypto.CryptoManager;
 
 public class Storage {
 	
