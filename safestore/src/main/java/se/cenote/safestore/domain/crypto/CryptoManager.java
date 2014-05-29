@@ -19,11 +19,14 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class CryptoManager {
-	
-	private byte[] salt;
-	private byte[] iv;
+
 
 	public static void main(String[] args) {
+		
+		test1();
+	}
+	
+	public static void test0(){
 		
 		String text = "test1\nuffe\nabc123\ntest2\nuffe\nabc321";
 		char[] pwd = "123".toCharArray();
@@ -41,34 +44,36 @@ public class CryptoManager {
 		EncryptedData data2 = readFromFile(file);
 		System.out.println("Encrypted[2]: " + data2.getEncryptedBase64());
 		
-		String text2 = cryptoManager.decrypt(data2.getEncryptedBytes(), data2.getIv(), pwd);
+		String text2 = cryptoManager.decrypt(data2.getEncryptedBytes(), data2.getIv(), data2.getSalt(), pwd);
 		
 		System.out.println(">>" + text2);
 	}
 	
-	private void test(){
+	private static void test1(){
 		
 		String text = "test1\nuffe\nabc123\ntest2\nuffe\nabc321";
 		char[] pwd = "123".toCharArray();
 		
 		File file = new File("batman.cry");
 		
-		storeSecure(text, file, pwd);
+		CryptoManager cryptoManager = new CryptoManager();
 		
-		String encrypted = readSecure(file, pwd);
+		cryptoManager.storeSecure(text, file, pwd);
+		
+		String encrypted = cryptoManager.readSecure(file, pwd);
+		System.out.println(">> " + encrypted);
 	}
 	
 	public void storeSecure(String text, File file, char[] pwd){
-		CryptoManager cryptoManager = new CryptoManager();
-		EncryptedData data = cryptoManager.encrypt(text, pwd);
+		
+		EncryptedData data = encrypt(text, pwd);
 		writeToFile(file, data);
 	}
 	
 	public String readSecure(File file, char[] pwd){
 		EncryptedData data = readFromFile(file);
 		
-		CryptoManager cryptoManager = new CryptoManager();
-		return cryptoManager.decrypt(data.getEncryptedBytes(), data.getIv(), pwd);
+		return decrypt(data.getEncryptedBytes(), data.getIv(), data.getSalt(), pwd);
 	}
 	
 	public static EncryptedData readFromFile(File file) {
@@ -77,9 +82,11 @@ public class CryptoManager {
 		try{
 			Path path = Paths.get(file.getAbsolutePath());
 			byte[] arr = Files.readAllBytes(path);
+			
 			byte[] iv = Arrays.copyOfRange(arr, 0, 16);
-			byte[] encryptedBytes = Arrays.copyOfRange(arr, 16, arr.length);
-			data = new EncryptedData(encryptedBytes, iv);
+			byte[] salt = Arrays.copyOfRange(arr, 16, 24);
+			byte[] encryptedBytes = Arrays.copyOfRange(arr, 24, arr.length);
+			data = new EncryptedData(encryptedBytes, iv, salt);
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -92,6 +99,7 @@ public class CryptoManager {
 	    try {
 	    	Path path = Paths.get(file.getAbsolutePath());
 	    	Files.write(path, data.getIv());
+	    	Files.write(path, data.getSalt(), StandardOpenOption.APPEND);
 	    	Files.write(path, data.getEncryptedBytes(), StandardOpenOption.APPEND);
 	    }
 	    catch(Exception e){
@@ -100,8 +108,7 @@ public class CryptoManager {
 	}
 
 	public CryptoManager(){
-		salt = new byte[8];
-		new SecureRandom().nextBytes(salt);
+		
 	}
 	
 	public EncryptedData encrypt(String text, char[] pwd){
@@ -109,15 +116,18 @@ public class CryptoManager {
 		
 		try{
 			
+			byte[] salt = new byte[8];
+			new SecureRandom().nextBytes(salt);
+			
 			SecretKey secretKey = generateSecretKey(pwd, salt);
 			
 			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 			AlgorithmParameters params = cipher.getParameters();
-			iv = params.getParameterSpec(IvParameterSpec.class).getIV();
+			byte[] iv = params.getParameterSpec(IvParameterSpec.class).getIV();
 			byte[] encryptedData = cipher.doFinal(text.getBytes("UTF-8"));
 			
-			data = new EncryptedData(encryptedData, iv);
+			data = new EncryptedData(encryptedData, iv, salt);
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -125,21 +135,23 @@ public class CryptoManager {
 		return data;
 	}
 	
-	public String decrypt(byte[] encryptedText, byte[] iv, char[] pwd){
+	public String decrypt(byte[] encryptedText, byte[] iv, byte[] salt, char[] pwd){
 		
 		byte[] decrypted = null;
 		
 		try{
-			SecretKey secretKey = generateSecretKey(pwd, salt);
-			
-			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
-			decrypted = cipher.doFinal(encryptedText);
+			if(encryptedText != null){
+				SecretKey secretKey = generateSecretKey(pwd, salt);
+				
+				Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+				cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
+				decrypted = cipher.doFinal(encryptedText);
+			}
 		}
 		catch(Exception e){
 			e.printStackTrace();
 		}
-		return new String(decrypted);
+		return decrypted != null ? new String(decrypted) : null;
 	}
 	
 	
@@ -163,12 +175,14 @@ public class CryptoManager {
 		
 		private byte[] encryptedBytes;
 		private byte[] iv;
+		private byte[] salt;
 		
 		private String encryptedBase64;
 		
-		public EncryptedData(byte[] encryptedBytes, byte[] iv) {
+		public EncryptedData(byte[] encryptedBytes, byte[] iv, byte[] salt) {
 			this.encryptedBytes = encryptedBytes;
 			this.iv = iv;
+			this.salt = salt;
 			
 			encryptedBase64 = Base64.getEncoder().encodeToString(encryptedBytes);
 		}
@@ -177,6 +191,9 @@ public class CryptoManager {
 		}
 		public byte[] getIv() {
 			return iv;
+		}
+		public byte[] getSalt() {
+			return salt;
 		}
 		public String getEncryptedBase64(){
 			return encryptedBase64;

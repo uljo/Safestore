@@ -23,20 +23,22 @@ public class Storage {
 	
 	public void store(List<Entry> entries){
 		
-		File file = new File(System.getProperty("user.home"), ".safeStore");
-		
-		StringBuilder buffer = new StringBuilder();
-		for(Entry entry : entries){
-			buffer.append(entry.getName());
-			buffer.append("\n");
-			buffer.append(entry.getUsername());
-			buffer.append("\n");
-			buffer.append(new String(entry.getPwd()));
-			buffer.append("\n");
+		if(!entries.isEmpty()){
+			File file = new File(System.getProperty("user.home"), ".safeStore");
+			
+			StringBuilder buffer = new StringBuilder();
+			for(Entry entry : entries){
+				buffer.append(entry.getName());
+				buffer.append("\n");
+				buffer.append(entry.getUsername());
+				buffer.append("\n");
+				buffer.append(new String(entry.getPwd()));
+				buffer.append("\n");
+			}
+			buffer.replace(buffer.length()-1, buffer.length(), "");
+			
+			crypto.storeSecure(buffer.toString(), file, pwd);
 		}
-		buffer.replace(buffer.length()-1, buffer.length(), "");
-		
-		crypto.storeSecure(buffer.toString(), file, pwd);
 	}
 	
 	public List<Entry> load(){
@@ -47,16 +49,17 @@ public class Storage {
 		if(file.exists()){
 			
 			String data = crypto.readSecure(file, pwd);
-			
-			String[] parts = data.split("\n");
-			int i = 0;
-			while(i < parts.length){
-				String name = parts[i++];
-				String username = parts[i++];
-				String password = parts[i++];
-				
-				Entry entry = new Entry(name, username, password.getBytes());
-				list.add(entry);
+			if(data != null){
+				String[] parts = data.split("\n");
+				int i = 0;
+				while(i < parts.length-2){
+					String name = parts[i++];
+					String username = parts[i++];
+					String password = parts[i++];
+					
+					Entry entry = new Entry(name, username, password.getBytes());
+					list.add(entry);
+				}
 			}
 		}
 		
