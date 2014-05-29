@@ -2,20 +2,22 @@ package se.cenote.safestore.ui.settings;
 
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.layout.BorderPane;
 
 import org.controlsfx.control.PropertySheet;
 import org.controlsfx.control.PropertySheet.Item;
 import org.controlsfx.property.BeanPropertyUtils;
 
 import se.cenote.safestore.domain.Settings;
+import se.cenote.safestore.ui.view.BaseView;
+import se.cenote.safestore.ui.view.ViewManager;
 
-public class SettingView extends BorderPane{
+public class SettingView extends BaseView{
 	
 	private PropertySheet propertySheet;
 	private Settings settings;
 	
-	public SettingView(){
+	public SettingView(ViewManager viewMgr){
+		super(viewMgr);
 		initComponents();
 		layoutComponents();
 	}

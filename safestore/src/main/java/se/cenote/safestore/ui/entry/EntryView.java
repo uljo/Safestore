@@ -5,19 +5,22 @@ import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.BorderPane;
 import se.cenote.safestore.AppContext;
 import se.cenote.safestore.domain.Entry;
 import se.cenote.safestore.ui.entry.EntryPanel.EntryListener;
+import se.cenote.safestore.ui.view.BaseView;
+import se.cenote.safestore.ui.view.ViewManager;
 
-public class EntryView extends BorderPane{
+public class EntryView extends BaseView{
 
 	private ListView<String> nameList;
 	private EntryPanel entryPanel;
 	
-	public EntryView(){
+	
+	
+	public EntryView(ViewManager viewMgr){
+		super(viewMgr);
 		initComponents();
 		layoutComponents();
 	}
@@ -50,16 +53,19 @@ public class EntryView extends BorderPane{
 				update(list);
 			}
 		});
+		
 	}
 
 	private void layoutComponents() {
 		
 		setPadding(new Insets(10));
 		
-		setTop(new Label("SafeStore"));
 		
+		
+		//nameList.setPadding(new Insets(5));
 		setLeft(nameList);
 		
+		entryPanel.setPadding(new Insets(10));
 		setRight(entryPanel);
 	}
 }
