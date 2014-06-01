@@ -9,6 +9,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -49,6 +50,7 @@ public class ViewManager extends BorderPane{
 		FlowPane labelPane = new FlowPane();
 		labelPane.getChildren().add(lbl);
 		labelPane.setAlignment(Pos.CENTER);
+		//labelPane.setStyle("-fx-background-color: red");
 		
 		ImageView imgView = new ImageView();
         Image vaultImg = new Image(EntryView.class.getResourceAsStream("vault-1.png"), 100, 100, true, true);
@@ -81,6 +83,8 @@ public class ViewManager extends BorderPane{
 	public void add(View view){
 		viewsByName.put(view.getName(), view);
 		
+		//Parent parent = view.getView();
+		//parent.setStyle("-fx-background-color: yellow;");
 		setCenter(view.getView());
 	}
 	

@@ -70,7 +70,7 @@ public class CryptoManager {
 		writeToFile(file, data);
 	}
 	
-	public String readSecure(File file, char[] pwd){
+	public String readSecure(File file, char[] pwd) throws IllegalArgumentException{
 		EncryptedData data = readFromFile(file);
 		
 		return decrypt(data.getEncryptedBytes(), data.getIv(), data.getSalt(), pwd);
@@ -149,7 +149,8 @@ public class CryptoManager {
 			}
 		}
 		catch(Exception e){
-			e.printStackTrace();
+			System.out.println("[decrypt] Caught " + e);
+			throw new IllegalArgumentException(e);
 		}
 		return decrypted != null ? new String(decrypted) : null;
 	}

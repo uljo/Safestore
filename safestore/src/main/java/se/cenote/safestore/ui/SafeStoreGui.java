@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import se.cenote.safestore.AppContext;
 import se.cenote.safestore.ui.entry.EntryView;
+import se.cenote.safestore.ui.login.LoginView;
 import se.cenote.safestore.ui.settings.SettingView;
 import se.cenote.safestore.ui.view.ViewManager;
 
@@ -15,8 +16,9 @@ public class SafeStoreGui extends Application{
 	private double height = 500;
 	
 	private ViewManager viewMgr;
-	private EntryView entryView;
 	
+	private LoginView loginView;
+	private EntryView entryView;
 	private SettingView settingView;
 	
 	public SafeStoreGui(){
@@ -27,6 +29,11 @@ public class SafeStoreGui extends Application{
 		
 		entryView = new EntryView(viewMgr);
 		viewMgr.add(entryView);
+		
+		loginView = new LoginView(viewMgr);
+		viewMgr.add(loginView);
+		
+		viewMgr.show(LoginView.class.getName());
 	}
 
 	public void start(Stage stage) throws Exception {

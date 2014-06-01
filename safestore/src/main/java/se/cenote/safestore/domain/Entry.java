@@ -1,7 +1,7 @@
 package se.cenote.safestore.domain;
 
 import java.io.Serializable;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public class Entry implements Serializable{
 	
@@ -12,8 +12,8 @@ public class Entry implements Serializable{
 		
 		private String comments;
 		
-		private LocalTime created;
-		private LocalTime edited;
+		private LocalDateTime created;
+		private LocalDateTime edited;
 		
 		public Entry(String name, String username, byte[] pwd){
 			this(name, username, pwd, null);
@@ -58,19 +58,19 @@ public class Entry implements Serializable{
 			this.comments = comments;
 		}
 
-		public LocalTime getCreated() {
+		public LocalDateTime getCreated() {
 			return created;
 		}
 
-		public void setCreated(LocalTime created) {
+		public void setCreated(LocalDateTime created) {
 			this.created = created;
 		}
 
-		public LocalTime getEdited() {
+		public LocalDateTime getEdited() {
 			return edited;
 		}
 
-		public void setEdited(LocalTime edited) {
+		public void setEdited(LocalDateTime edited) {
 			this.edited = edited;
 		}
 

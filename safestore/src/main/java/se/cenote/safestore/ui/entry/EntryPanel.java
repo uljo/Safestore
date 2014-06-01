@@ -1,7 +1,6 @@
 package se.cenote.safestore.ui.entry;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -11,12 +10,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.text.Font;
 import se.cenote.safestore.AppContext;
+import se.cenote.safestore.domain.CalendarUtil;
 import se.cenote.safestore.domain.Entry;
 
 public class EntryPanel extends BorderPane{
 	
-	private enum EditMode {VIEW, NEW, EDIT} 
+	private enum Mode {VIEW, NEW, EDIT} 
 	
 	private Label nameLbl;
 	private Label userLbl;
@@ -32,7 +34,7 @@ public class EntryPanel extends BorderPane{
 	
 	private GridPane grid;
 	
-	private EditMode editMode;
+	private Mode mode = Mode.VIEW;
 	
 	private Button newBtn;
 	private Button editBtn;
@@ -41,14 +43,16 @@ public class EntryPanel extends BorderPane{
 	
 	private EntryListener lst;
 	private Entry entry;
-	
-	private Button settingsBtn;
-	
+
 	public EntryPanel(EntryListener lst){
 		this.lst = lst;
 		
 		initComponents();
 		layoutComponents();
+	}
+	
+	public boolean isViewMode() {
+		return Mode.VIEW.equals(mode);
 	}
 	
 	public void update(Entry entry){
@@ -59,11 +63,23 @@ public class EntryPanel extends BorderPane{
 		userLbl.setText("");
 		pwdLbl.setText("");
 		
+		commentsFld.setText("");
+		createdLbl.setText("");
+		editedLbl.setText("");
+		
 		if(entry != null){
 			nameLbl.setText(entry.getName());
 			userLbl.setText(entry.getUsername());
 			pwdLbl.setText(new String(entry.getPwd()));
+			
+			commentsFld.setText(entry.getComments());
+			createdLbl.setText(format(entry.getCreated()));
+			editedLbl.setText(format(entry.getEdited()));
 		}
+		
+		toggleBtns(false);
+		mode = Mode.VIEW;
+		
 	}
 	
 	private void doCreate(){
@@ -81,9 +97,11 @@ public class EntryPanel extends BorderPane{
 		String name = nameFld.getText();
 		String user = userFld.getText();
 		byte[] pwd = pwdFld.getText().getBytes();
+		String comments = commentsFld.getText();
 		
 		if(entry == null){
-			entry = AppContext.getInstance().getApp().add(name, user, pwd);
+			entry = AppContext.getInstance().getApp().add(name, user, pwd, comments);
+			createdLbl.setText(format(this.entry.getCreated()));
 			if(lst != null){
 				lst.onSave(entry);
 			}
@@ -92,6 +110,10 @@ public class EntryPanel extends BorderPane{
 			this.entry.setName(name);
 			this.entry.setUsername(user);
 			this.entry.setPwd(pwd);
+			this.entry.setComments(comments);
+			this.entry.setEdited(LocalDateTime.now());
+			
+			editedLbl.setText(format(this.entry.getEdited()));
 		}
 		
 		toggleMode(false);
@@ -105,15 +127,22 @@ public class EntryPanel extends BorderPane{
 	
 	private void toggleMode(boolean enable){
 		
+		mode = enable ? Mode.EDIT : Mode.VIEW;
+		
 		if(enable){
 			nameFld.setText(nameLbl.getText());
 			userFld.setText(userLbl.getText());
 			pwdFld.setText(pwdLbl.getText());
 			
+			commentsFld.setEditable(true);
+			
 			grid.getChildren().remove(nameLbl);
 			grid.add(nameFld, 1, 0);
+			
 			grid.getChildren().remove(userLbl);
+			GridPane.setMargin(userFld, new Insets(20, 0, 0, 0));
 			grid.add(userFld, 1, 1);
+			
 			grid.getChildren().remove(pwdLbl);
 			grid.add(pwdFld, 1, 2);
 		}
@@ -122,22 +151,35 @@ public class EntryPanel extends BorderPane{
 			userLbl.setText(userFld.getText());
 			pwdLbl.setText(pwdFld.getText());
 			
+			commentsFld.setEditable(false);
+			
 			grid.getChildren().remove(nameFld);
 			grid.add(nameLbl, 1, 0);
+			
 			grid.getChildren().remove(userFld);
+			GridPane.setMargin(userLbl, new Insets(20, 0, 0, 0));
 			grid.add(userLbl, 1, 1);
+			
 			grid.getChildren().remove(pwdFld);
 			grid.add(pwdLbl, 1, 2);
 		}
 		
-		newBtn.setDisable(enable);
-		editBtn.setDisable(enable);
-		saveBtn.setDisable(!enable);
-		cancelBtn.setDisable(!enable);
+		toggleBtns(enable);
 
 		if(enable){
 			nameFld.requestFocus();
 		}
+	}
+	
+	private void toggleBtns(boolean enable){
+		newBtn.setDisable(enable);
+		editBtn.setDisable(enable);
+		saveBtn.setDisable(!enable);
+		cancelBtn.setDisable(!enable);
+	}
+	
+	private static String format(LocalDateTime dateTime){
+		return CalendarUtil.formatDateTime(dateTime);
 	}
 
 	private void initComponents() {
@@ -166,10 +208,13 @@ public class EntryPanel extends BorderPane{
 		pwdFld.setPrefWidth(60);
 		
 		commentsFld = new TextArea();
-		commentsFld.setMaxWidth(200);
+		commentsFld.setPrefRowCount(4);
+		commentsFld.setEditable(false);
 		
-		createdLbl = new Label(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE));
+		createdLbl = new Label(format(LocalDateTime.now()));
+		createdLbl.setFont(Font.font(9));
 		editedLbl = new Label("--");
+		editedLbl.setFont(Font.font(9));
 		
 		newBtn = new Button("Ny");
 		newBtn.setOnAction(e -> doCreate());
@@ -193,24 +238,41 @@ public class EntryPanel extends BorderPane{
 		grid.setPadding(new Insets(5));
 		grid.setHgap(4);
 		grid.setVgap(4);
-		grid.add(new Label("Namn:"), 0, 0);
+		
+		
+		Label namePrompt = new Label("Namn:");
+		grid.add(namePrompt, 0, 0);
 		grid.add(nameLbl, 1, 0);
 		
-		grid.add(new Label("Användare:"), 0, 1);
+		Label userPrompt = new Label("Användare:");
+		GridPane.setMargin(userPrompt, new Insets(20, 0, 0, 0));
+		GridPane.setMargin(userLbl, new Insets(20, 0, 0, 0));
+		grid.add(userPrompt, 0, 1);
 		grid.add(userLbl, 1, 1);
 		
 		grid.add(new Label("Lösenord:"), 0, 2);
 		grid.add(pwdLbl, 1, 2);
 		
-		grid.add(new Label("Notering:"), 0, 3);
+		
+		Label notePrompt = new Label("Notering:");
+		GridPane.setMargin(notePrompt, new Insets(20, 0, 0, 0));
+		
+		grid.add(notePrompt, 0, 3);
 		grid.add(commentsFld, 0, 4, 2, 1);
+		GridPane.setHgrow(commentsFld, Priority.ALWAYS);
 		
 		
-		FlowPane flowPane = new FlowPane();
-		flowPane.setHgap(5);
-		flowPane.getChildren().addAll(new Label("Skapad:"), createdLbl, new Label("Ändrad:"), editedLbl);
+		Label createdPrompt = new Label("Skapad:");
+		createdPrompt.setFont(Font.font(10));
+		GridPane.setMargin(createdPrompt, new Insets(10, 0, 0, 0));
+		GridPane.setMargin(createdLbl, new Insets(10, 0, 0, 0));
+		grid.add(createdPrompt, 0, 5);
+		grid.add(createdLbl, 1, 5);
 		
-		grid.add(flowPane, 0, 5, 2, 1);
+		Label editedPrompt = new Label("Ändrad:");
+		editedPrompt.setFont(Font.font(10));
+		grid.add(editedPrompt, 0, 6);
+		grid.add(editedLbl, 1, 6);
 		
 		FlowPane btnPanel = new FlowPane();
 		btnPanel.setPadding(new Insets(5));
@@ -225,5 +287,6 @@ public class EntryPanel extends BorderPane{
 	public interface EntryListener{
 		public void onSave(Entry entry);
 	}
+
 
 }

@@ -1,5 +1,6 @@
 package se.cenote.safestore;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,10 +13,11 @@ import se.cenote.safestore.ui.SafeStoreGui;
 
 public class SafeStoreApp {
 
-	private List<Entry> entries;
 	private Map<String, Entry> entryMap;
 	
 	private Storage storage;
+	
+	private char[] pwd;
 	
 	public static void main(String[] args) {
 		AppContext.getInstance().getApp();
@@ -27,7 +29,10 @@ public class SafeStoreApp {
 		entryMap = new HashMap<String, Entry>();
 		
 		storage = new Storage();
-		entries = storage.load();
+	}
+	
+	private void load(char[] pwd) throws IllegalArgumentException{
+		List<Entry> entries = storage.load(pwd);
 		for(Entry entry : entries){
 			entryMap.put(entry.getName(), entry);
 		}
@@ -37,10 +42,13 @@ public class SafeStoreApp {
 	public List<String> getSuggestions(String text){
 		List<String> list = new ArrayList<String>();
 		
-		for(Entry entry : entries){
-			String value = entry.getUsername();
-			if(value.startsWith(text)){
-				list.add(value);
+		List<Entry> entries = storage.load(pwd);
+		if(entries != null){
+			for(Entry entry : entries){
+				String value = entry.getUsername();
+				if(value.startsWith(text)){
+					list.add(value);
+				}
 			}
 		}
 		return list;
@@ -48,7 +56,7 @@ public class SafeStoreApp {
 	
 	public void close(){
 		List<Entry> list = new ArrayList<Entry>(entryMap.values());
-		storage.store(list);
+		storage.store(list, pwd);
 		System.out.println("[init] stored " + list.size() + " entities.");
 	}
 	
@@ -62,11 +70,17 @@ public class SafeStoreApp {
 		return entryMap.get(name);
 	}
 	
-	public Entry add(String name, String user, byte[] pwd){
-		Entry entry = new Entry(name, user, pwd);
+	public Entry add(String name, String user, byte[] pwd, String comments){
+		Entry entry = new Entry(name, user, pwd, comments);
+		entry.setCreated(LocalDateTime.now());
 		entryMap.put(name, entry);
 		
 		return entry;
+	}
+
+	public void login(char[] pwd) throws IllegalArgumentException{
+		load(pwd);
+		this.pwd = pwd;
 	}
 	
 }
