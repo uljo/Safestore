@@ -11,4 +11,4 @@ s
 
 ##Licensing
 Safestore is Open Source Software.
-See _licence.txt_
+See _license.txt_
