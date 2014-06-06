@@ -9,13 +9,16 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
@@ -34,6 +37,10 @@ public class ViewManager extends BorderPane{
 	private Node backIcon;
 	private Node gearIcon;
 	
+	private static final String GRADIENT_1 = "-fx-background-color: radial-gradient(center 50% 50% , radius 120px , #ffebcd, #008080);"; 
+	private static final String GRADIENT_2 = "-fx-background-color: radial-gradient(center 20% 20% , radius 50% , #f5f5dc, #8b4513);"; 
+	private static final String GRADIENT_3 = "-fx-background-color: linear-gradient(#69B4E4 0%, #0070B9 100%);";
+	
 	public ViewManager(){
 		viewsByName = new HashMap<String, View>();
 		
@@ -41,11 +48,16 @@ public class ViewManager extends BorderPane{
 		backIcon = FontAwesome.Glyph.BACKWARD.create();
 		gearIcon = FontAwesome.Glyph.GEAR.create();
 		
-		settingsBtn = new Button("Inställningar", gearIcon);
-		settingsBtn.setOnAction(e -> flip());
-		
 		Label lbl = new Label("SafeStore");
-		lbl.setFont(Font.font(18));
+		lbl.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 24pt;");
+		
+		DropShadow effect = new DropShadow();
+		effect.setOffsetY(5.0);
+        effect.setOffsetX(5.0);
+        effect.setColor(Color.GRAY);
+        Reflection reflection = new Reflection(8, 20, 70, 0);
+        //effect.setInput(reflection);    
+		lbl.setEffect(effect);
 		
 		FlowPane labelPane = new FlowPane();
 		labelPane.getChildren().add(lbl);
@@ -56,26 +68,38 @@ public class ViewManager extends BorderPane{
         Image vaultImg = new Image(EntryView.class.getResourceAsStream("vault-1.png"), 100, 100, true, true);
         imgView.setImage(vaultImg);
 		
-		
-		BorderPane p = new BorderPane();
-		p.setPadding(new Insets(5));
-		p.setLeft(imgView);
-		p.setCenter(labelPane);
-		p.setRight(settingsBtn);
-		p.setStyle("-fx-background-color: slateblue; -fx-text-fill: white;");
-		setTop(p);
+        BorderPane topPane = new BorderPane();
+        topPane.setPadding(new Insets(5));
+        topPane.setLeft(imgView);
+        topPane.setCenter(labelPane);
+		//topPane.setRight(settingsBtn);
+        //topPane.setStyle("-fx-background-color: slateblue; -fx-text-fill: white;");
+        topPane.setStyle(GRADIENT_3);
+        
+        settingsBtn = new Button("", gearIcon);
+		settingsBtn.setOnAction(e -> flip());
+		settingsBtn.setVisible(false);
+        
+        FlowPane menuPane = new FlowPane();
+        menuPane.setPadding(new Insets(4));
+        menuPane.setAlignment(Pos.CENTER_RIGHT);
+        menuPane.getChildren().add(settingsBtn);
+        
+        VBox vBox = new VBox();
+        vBox.getChildren().addAll(topPane, menuPane);
+		setTop(vBox);
 	}
 	
 	public void flip(){
 		
 		if(currView != null && currView.getName() == SettingView.class.getName()){
 			show(EntryView.class.getName());
-			settingsBtn.setText("Inställningar");
+			//settingsBtn.setText("Inställningar");
 			settingsBtn.setGraphic(gearIcon);
 		}
 		else{
 			show(SettingView.class.getName());
-			settingsBtn.setText("Tillbaka");
+			//settingsBtn.setText("Tillbaka");
 			settingsBtn.setGraphic(backIcon);
 		}
 	}
@@ -88,10 +112,24 @@ public class ViewManager extends BorderPane{
 		setCenter(view.getView());
 	}
 	
+	public void showEntryView(){
+		show(EntryView.class.getName());
+		
+		if(!settingsBtn.isVisible()){
+			settingsBtn.setVisible(true);
+			System.out.println("Enable settings btn: " + settingsBtn.isVisible());
+		}
+	}
+	
+	public void showSettingView(){
+		show(SettingView.class.getName());
+	}
+	
 	public void show(String name) {
 		
-		if(currView != null)
+		if(currView != null){
 			currView.onHide();
+		}
 		
 		View prevView = currView;
 		

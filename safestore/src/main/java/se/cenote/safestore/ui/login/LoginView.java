@@ -29,7 +29,7 @@ public class LoginView extends BaseView{
 		try{
 			AppContext.getInstance().getApp().login(passwordFld.getText().toCharArray());
 			
-			getViewManger().show(EntryView.class.getName());
+			getViewManger().showEntryView();
 		}
 		catch(Exception e){
 			Dialogs.create()

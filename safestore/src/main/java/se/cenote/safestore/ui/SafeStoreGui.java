@@ -42,6 +42,7 @@ public class SafeStoreGui extends Application{
 		//group.getChildren().add(viewMgr);
 		
 		Scene scene = new Scene(viewMgr, width, height);
+		scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 		
 		stage.setScene(scene);
 		stage.setTitle(TITLE);

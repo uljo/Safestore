@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import se.cenote.safestore.domain.Entry;
+import se.cenote.safestore.domain.Settings;
 import se.cenote.safestore.domain.Storage;
 import se.cenote.safestore.ui.SafeStoreGui;
 
@@ -15,6 +16,7 @@ public class SafeStoreApp {
 
 	private Map<String, Entry> entryMap;
 	
+	private Settings settings;
 	private Storage storage;
 	
 	private char[] pwd;
@@ -31,12 +33,17 @@ public class SafeStoreApp {
 		storage = new Storage();
 	}
 	
-	private void load(char[] pwd) throws IllegalArgumentException{
-		List<Entry> entries = storage.load(pwd);
-		for(Entry entry : entries){
-			entryMap.put(entry.getName(), entry);
-		}
-		System.out.println("[init] loaded " + entries.size() + " entities.");
+	public void login(char[] pwd) throws IllegalArgumentException{
+		
+		this.pwd = pwd;
+		
+		loadEntries(pwd);
+		
+		settings = new Settings();
+	}
+	
+	public Settings getSettings(){
+		return settings;
 	}
 	
 	public List<String> getSuggestions(String text){
@@ -57,7 +64,7 @@ public class SafeStoreApp {
 	public void close(){
 		List<Entry> list = new ArrayList<Entry>(entryMap.values());
 		storage.store(list, pwd);
-		System.out.println("[init] stored " + list.size() + " entities.");
+		System.out.println("[close] stored " + list.size() + " entities.");
 	}
 	
 	public List<String> getNames(){
@@ -78,9 +85,13 @@ public class SafeStoreApp {
 		return entry;
 	}
 
-	public void login(char[] pwd) throws IllegalArgumentException{
-		load(pwd);
-		this.pwd = pwd;
+	
+	private void loadEntries(char[] pwd) throws IllegalArgumentException{
+		List<Entry> entries = storage.load(pwd);
+		for(Entry entry : entries){
+			entryMap.put(entry.getName(), entry);
+		}
+		System.out.println("[loadEntries] loaded " + entries.size() + " entities.");
 	}
 	
 }

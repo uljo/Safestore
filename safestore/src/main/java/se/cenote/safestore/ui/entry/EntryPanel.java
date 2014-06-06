@@ -212,9 +212,13 @@ public class EntryPanel extends BorderPane{
 		commentsFld.setEditable(false);
 		
 		createdLbl = new Label(format(LocalDateTime.now()));
-		createdLbl.setFont(Font.font(9));
+		//createdLbl.setFont(Font.font(9));
+		createdLbl.setStyle("-fx-font-size: 10pt;");
+		
 		editedLbl = new Label("--");
-		editedLbl.setFont(Font.font(9));
+		//editedLbl.setFont(Font.font(9));
+		editedLbl.setStyle("-fx-font-size: 10pt;");
+		
 		
 		newBtn = new Button("Ny");
 		newBtn.setOnAction(e -> doCreate());
