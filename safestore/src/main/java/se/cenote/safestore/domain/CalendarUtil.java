@@ -10,6 +10,10 @@ public class CalendarUtil {
 	private static final DateTimeFormatter FMT = new DateTimeFormatterBuilder().appendPattern(PATTERN).toFormatter();
 	
 	
+	public static String formatDuration(long seconds){
+		return String.format("%02d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, (seconds % 60));
+	}
+	
 	public static String formatDateTime(LocalDateTime dateTime){
 		String text = "";
 		if(dateTime != null){

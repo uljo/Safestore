@@ -12,8 +12,8 @@ import se.cenote.safestore.ui.view.ViewManager;
 public class SafeStoreGui extends Application{
 	
 	private static final String TITLE = "SafeStore";
-	private double width = 380;
-	private double height = 500;
+	private double width = 440;
+	private double height = 540;
 	
 	private ViewManager viewMgr;
 	
@@ -51,7 +51,7 @@ public class SafeStoreGui extends Application{
 	
 	@Override
 	public void stop() throws Exception {
-		AppContext.getInstance().getApp().close();
+		AppContext.getInstance().getApp().logout();
 	}
 
 	public static void show() {

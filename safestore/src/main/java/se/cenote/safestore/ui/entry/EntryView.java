@@ -2,6 +2,9 @@ package se.cenote.safestore.ui.entry;
 
 import java.util.List;
 
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.control.ListView;
 import se.cenote.safestore.AppContext;
@@ -13,9 +16,9 @@ import se.cenote.safestore.ui.view.ViewManager;
 public class EntryView extends BaseView{
 
 	private ListView<String> nameList;
+	private ListListener lst;
+	
 	private EntryPanel entryPanel;
-	
-	
 	
 	public EntryView(ViewManager viewMgr){
 		super(viewMgr);
@@ -29,7 +32,6 @@ public class EntryView extends BaseView{
 		
 		if(!names.isEmpty()){
 			nameList.getSelectionModel().selectFirst();
-			//selectEntry(names.get(0));
 		}
 	}
 	
@@ -50,15 +52,11 @@ public class EntryView extends BaseView{
 	private void initComponents() {
 		nameList = new ListView<String>();
 		nameList.setPadding(new Insets(5));
-		
-		/*
-		List<String> names = AppContext.getInstance().getApp().getNames();
-		ObservableList<String> items = FXCollections.observableArrayList(names);
-		nameList.setItems(items);
-		*/
-		
+
 		nameList.getSelectionModel().selectedItemProperty().addListener((ov, o, n) -> {selectEntry(n);});
 		nameList.setPrefSize(100, 200);
+		
+		lst = new ListListener();
 		
 		entryPanel = new EntryPanel(new EntryListener() {
 			@Override
@@ -66,15 +64,37 @@ public class EntryView extends BaseView{
 				List<String> list = AppContext.getInstance().getApp().getNames();
 				update(list);
 			}
+
+			@Override
+			public void onEdit() {
+				nameList.setFocusTraversable(false);
+				nameList.getSelectionModel().selectedIndexProperty().addListener(lst);
+			}
+
+			@Override
+			public void onView() {
+				nameList.setFocusTraversable(true);
+				nameList.getSelectionModel().selectedIndexProperty().removeListener(lst);
+			}
+			
 		});
-		
+	}
+	
+	class ListListener implements ChangeListener<Number>{
+		@Override
+		public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+			Platform.runLater(new Runnable() {
+                public void run() {
+                	nameList.getSelectionModel().select(-1);
+
+                }
+            });
+		}	
 	}
 
 	private void layoutComponents() {
 		
 		setPadding(new Insets(10));
-		
-		
 		
 		//nameList.setPadding(new Insets(5));
 		setLeft(nameList);

@@ -37,9 +37,10 @@ public class SettingView extends BaseView{
 		fileFld.setText(settings.getPath());
 		
 		cipherCmb.getItems().clear();
-		for(String c : settings.getChiphers()){
-			cipherCmb.getItems().add(c);
+		for(String crypto : settings.getCryptos()){
+			cipherCmb.getItems().add(crypto);
 		}
+		cipherCmb.getSelectionModel().select(settings.getSeletedCrypto());
 	}
 
 	private void initComponents() {

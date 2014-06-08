@@ -19,12 +19,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.util.Duration;
 
 import org.controlsfx.glyphfont.FontAwesome;
 
+import se.cenote.safestore.AppContext;
 import se.cenote.safestore.ui.entry.EntryView;
+import se.cenote.safestore.ui.login.LoginView;
 import se.cenote.safestore.ui.settings.SettingView;
 
 
@@ -67,6 +68,7 @@ public class ViewManager extends BorderPane{
 		ImageView imgView = new ImageView();
         Image vaultImg = new Image(EntryView.class.getResourceAsStream("vault-1.png"), 100, 100, true, true);
         imgView.setImage(vaultImg);
+        imgView.setOnMouseClicked(e -> logOut());
 		
         BorderPane topPane = new BorderPane();
         topPane.setPadding(new Insets(5));
@@ -88,6 +90,13 @@ public class ViewManager extends BorderPane{
         VBox vBox = new VBox();
         vBox.getChildren().addAll(topPane, menuPane);
 		setTop(vBox);
+	}
+	
+	public void logOut(){
+		if(currView != null && currView.getName() != LoginView.class.getName()){
+			AppContext.getInstance().getApp().logout();
+			showLoginView();
+		}
 	}
 	
 	public void flip(){
@@ -112,10 +121,18 @@ public class ViewManager extends BorderPane{
 		setCenter(view.getView());
 	}
 	
+	public void showLoginView(){
+		show(LoginView.class.getName());
+		if(settingsBtn.isVisible()){
+			settingsBtn.setVisible(false);
+		}
+	}
+	
 	public void showEntryView(){
 		show(EntryView.class.getName());
 		
 		if(!settingsBtn.isVisible()){
+			settingsBtn.setGraphic(gearIcon);
 			settingsBtn.setVisible(true);
 			System.out.println("Enable settings btn: " + settingsBtn.isVisible());
 		}

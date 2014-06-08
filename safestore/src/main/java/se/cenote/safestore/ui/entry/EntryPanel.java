@@ -36,6 +36,8 @@ public class EntryPanel extends BorderPane{
 	
 	private Mode mode = Mode.VIEW;
 	
+	private boolean showPwd;
+	
 	private Button newBtn;
 	private Button editBtn;
 	private Button saveBtn;
@@ -70,7 +72,7 @@ public class EntryPanel extends BorderPane{
 		if(entry != null){
 			nameLbl.setText(entry.getName());
 			userLbl.setText(entry.getUsername());
-			pwdLbl.setText(new String(entry.getPwd()));
+			pwdLbl.setText(showPwd ? new String(entry.getPwd()) : "******");
 			
 			commentsFld.setText(entry.getComments());
 			createdLbl.setText(format(entry.getCreated()));
@@ -119,7 +121,6 @@ public class EntryPanel extends BorderPane{
 		toggleMode(false);
 	}
 	
-	
 	private void doCancel(){
 		update(entry);
 		toggleMode(false);
@@ -132,7 +133,7 @@ public class EntryPanel extends BorderPane{
 		if(enable){
 			nameFld.setText(nameLbl.getText());
 			userFld.setText(userLbl.getText());
-			pwdFld.setText(pwdLbl.getText());
+			pwdFld.setText(entry != null ? new String(entry.getPwd()) : "");
 			
 			commentsFld.setEditable(true);
 			
@@ -145,11 +146,13 @@ public class EntryPanel extends BorderPane{
 			
 			grid.getChildren().remove(pwdLbl);
 			grid.add(pwdFld, 1, 2);
+			
+			lst.onEdit();
 		}
 		else{
 			nameLbl.setText(nameFld.getText());
 			userLbl.setText(userFld.getText());
-			pwdLbl.setText(pwdFld.getText());
+			pwdLbl.setText(showPwd ? pwdFld.getText() : "******");
 			
 			commentsFld.setEditable(false);
 			
@@ -162,6 +165,8 @@ public class EntryPanel extends BorderPane{
 			
 			grid.getChildren().remove(pwdFld);
 			grid.add(pwdLbl, 1, 2);
+			
+			lst.onView();
 		}
 		
 		toggleBtns(enable);
@@ -267,14 +272,16 @@ public class EntryPanel extends BorderPane{
 		
 		
 		Label createdPrompt = new Label("Skapad:");
-		createdPrompt.setFont(Font.font(10));
+		createdPrompt.setStyle("-fx-font-size: 10pt;");
+		//createdPrompt.setFont(Font.font(10));
 		GridPane.setMargin(createdPrompt, new Insets(10, 0, 0, 0));
 		GridPane.setMargin(createdLbl, new Insets(10, 0, 0, 0));
 		grid.add(createdPrompt, 0, 5);
 		grid.add(createdLbl, 1, 5);
 		
 		Label editedPrompt = new Label("Ändrad:");
-		editedPrompt.setFont(Font.font(10));
+		editedPrompt.setStyle("-fx-font-size: 10pt;");
+		//editedPrompt.setFont(Font.font(10));
 		grid.add(editedPrompt, 0, 6);
 		grid.add(editedLbl, 1, 6);
 		
@@ -290,6 +297,8 @@ public class EntryPanel extends BorderPane{
 	
 	public interface EntryListener{
 		public void onSave(Entry entry);
+		public void onEdit();
+		public void onView();
 	}
 
 

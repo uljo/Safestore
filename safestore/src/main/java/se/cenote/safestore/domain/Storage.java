@@ -4,27 +4,29 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.cenote.safestore.domain.crypto.CryptoManager;
+import se.cenote.safestore.AppContext;
 
 public class Storage {
 	
-	//private char[] pwd;
-	private CryptoManager crypto;
+	private static final String FILE_NAME = ".safeStore";
+
+	private File storeFile;
 	
 	public Storage(){
-		crypto = new CryptoManager();
-		//pwd = "abc123".toCharArray();
+		storeFile = new File(System.getProperty("user.home"), FILE_NAME);
 	}
 	
-	private File getFile(){
-		File file = new File(System.getProperty("user.home"), ".safeStore");
-		return file;
+	public boolean isInitialized() {
+		return storeFile.exists();
 	}
 	
+	public File getFile(){
+		return storeFile;
+	}
+
 	public void store(List<Entry> entries, char[] pwd){
 		
 		if(!entries.isEmpty()){
-			File file = new File(System.getProperty("user.home"), ".safeStore");
 			
 			StringBuilder buffer = new StringBuilder();
 			for(Entry entry : entries){
@@ -43,7 +45,7 @@ public class Storage {
 			}
 			buffer.replace(buffer.length()-1, buffer.length(), "");
 			
-			crypto.storeSecure(buffer.toString(), file, pwd);
+			AppContext.getInstance().getApp().getCrypoManager().storeSecure(buffer.toString(), storeFile, pwd);
 		}
 	}
 	
@@ -51,12 +53,11 @@ public class Storage {
 		
 		List<Entry> list = new ArrayList<Entry>();
 		
-		File file = getFile();
-		if(file.exists()){
+		if(storeFile.exists()){
 			
 			String data = null;
 			try{
-				data = crypto.readSecure(file, pwd);
+				data = AppContext.getInstance().getApp().getCrypoManager().readSecure(storeFile, pwd);
 				
 				if(data != null){
 					

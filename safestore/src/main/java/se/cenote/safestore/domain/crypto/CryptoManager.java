@@ -5,20 +5,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.security.AlgorithmParameters;
-import java.security.SecureRandom;
-import java.security.spec.KeySpec;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
+import java.util.List;
 
 public class CryptoManager {
+	
+	private PBE_Crypto_AES crypto;
 
 
 	public static void main(String[] args) {
@@ -26,16 +22,31 @@ public class CryptoManager {
 		test1();
 	}
 	
-	public static void test0(){
+
+	public CryptoManager(){
+		crypto = new PBE_Crypto_AES();
+	}
+	
+	public List<String> getCryptos(){
+		List<String> cryptos = new ArrayList<String>();
+		cryptos.add(PBE_Crypto_AES.ALGO);
+		cryptos.add(PBE_Crypto_DES.ALGO);
+		return cryptos;
+	}
+	
+	public String getSelectedCrypto(){
+		return PBE_Crypto_AES.ALGO;
+	}
+	
+	public void test0(){
 		
 		String text = "test1\nuffe\nabc123\ntest2\nuffe\nabc321";
 		char[] pwd = "123".toCharArray();
 		
 		System.out.println("Text: " + text + ", pwd: " + new String(pwd));
+	
 		
-		CryptoManager cryptoManager = new CryptoManager();
-		
-		EncryptedData data = cryptoManager.encrypt(text, pwd);
+		EncryptedData data = crypto.encrypt(text, pwd);
 		System.out.println("Encrypted[1]: " + data.getEncryptedBase64());
 		
 		File file = new File("batman.cry");
@@ -44,7 +55,7 @@ public class CryptoManager {
 		EncryptedData data2 = readFromFile(file);
 		System.out.println("Encrypted[2]: " + data2.getEncryptedBase64());
 		
-		String text2 = cryptoManager.decrypt(data2.getEncryptedBytes(), data2.getIv(), data2.getSalt(), pwd);
+		String text2 = crypto.decrypt(data2, pwd);
 		
 		System.out.println(">>" + text2);
 	}
@@ -66,14 +77,14 @@ public class CryptoManager {
 	
 	public void storeSecure(String text, File file, char[] pwd){
 		
-		EncryptedData data = encrypt(text, pwd);
+		EncryptedData data = crypto.encrypt(text, pwd);
 		writeToFile(file, data);
 	}
 	
 	public String readSecure(File file, char[] pwd) throws IllegalArgumentException{
 		EncryptedData data = readFromFile(file);
 		
-		return decrypt(data.getEncryptedBytes(), data.getIv(), data.getSalt(), pwd);
+		return crypto.decrypt(data, pwd);
 	}
 	
 	public static EncryptedData readFromFile(File file) {
@@ -105,71 +116,6 @@ public class CryptoManager {
 	    catch(Exception e){
 	    	e.printStackTrace();
 	    }
-	}
-
-	public CryptoManager(){
-		
-	}
-	
-	public EncryptedData encrypt(String text, char[] pwd){
-		EncryptedData data = null;
-		
-		try{
-			
-			byte[] salt = new byte[8];
-			new SecureRandom().nextBytes(salt);
-			
-			SecretKey secretKey = generateSecretKey(pwd, salt);
-			
-			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-			AlgorithmParameters params = cipher.getParameters();
-			byte[] iv = params.getParameterSpec(IvParameterSpec.class).getIV();
-			byte[] encryptedData = cipher.doFinal(text.getBytes("UTF-8"));
-			
-			data = new EncryptedData(encryptedData, iv, salt);
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
-		return data;
-	}
-	
-	public String decrypt(byte[] encryptedText, byte[] iv, byte[] salt, char[] pwd){
-		
-		byte[] decrypted = null;
-		
-		try{
-			if(encryptedText != null){
-				SecretKey secretKey = generateSecretKey(pwd, salt);
-				
-				Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-				cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
-				decrypted = cipher.doFinal(encryptedText);
-			}
-		}
-		catch(Exception e){
-			System.out.println("[decrypt] Caught " + e);
-			throw new IllegalArgumentException(e);
-		}
-		return decrypted != null ? new String(decrypted) : null;
-	}
-	
-	
-	private static SecretKey generateSecretKey(char[] pwd, byte[] salt){
-		SecretKey secretKey = null;
-		
-		try{
-			SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-			KeySpec spec = new PBEKeySpec(pwd, salt, 65536, 256);
-			SecretKey tmp = factory.generateSecret(spec);
-			
-			secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
-		return secretKey;
 	}
 
 	public static class EncryptedData{
