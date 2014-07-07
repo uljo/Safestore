@@ -2,6 +2,7 @@ package se.cenote.safestore.domain;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import se.cenote.safestore.AppContext;
@@ -31,17 +32,17 @@ public class Storage {
 			StringBuilder buffer = new StringBuilder();
 			for(Entry entry : entries){
 				buffer.append(entry.getName());
-				buffer.append("¤");
+				buffer.append("\t");
 				buffer.append(entry.getUsername());
-				buffer.append("¤");
+				buffer.append("\t");
 				buffer.append(new String(entry.getPwd()));
-				buffer.append("¤");
+				buffer.append("\t");
 				buffer.append(new String(entry.getComments()));
-				buffer.append("¤");
+				buffer.append("\t");
 				buffer.append(new String(CalendarUtil.formatDateTime(entry.getCreated())));
-				buffer.append("¤");
+				buffer.append("\t");
 				buffer.append(new String(CalendarUtil.formatDateTime(entry.getEdited())));
-				buffer.append("#");
+				buffer.append("\n");
 			}
 			buffer.replace(buffer.length()-1, buffer.length(), "");
 			
@@ -55,16 +56,21 @@ public class Storage {
 		
 		if(storeFile.exists()){
 			
+			debug("[load] Trying open file: " + storeFile.getAbsolutePath());
+			
 			String data = null;
 			try{
 				data = AppContext.getInstance().getApp().getCrypoManager().readSecure(storeFile, pwd);
 				
 				if(data != null){
 					
-					String[] posts = data.split("#");
+					String[] posts = data.split("\n");
+					
+					//System.out.println("[load] retrieved: " + Arrays.asList(posts));
+					
 					for(String post : posts){
 						
-						String[] parts = post.split("¤");
+						String[] parts = post.split("\t");
 						String name = parts[0];
 						String username = parts[1];
 						String password = parts[2];
@@ -86,13 +92,24 @@ public class Storage {
 				}
 			}
 			catch(Exception e){
-				System.out.println("[load] Caught " + e);
+				error("[load] Caught " + e);
 				throw new IllegalArgumentException(e);
 			}
 			
 		}
+		else{
+			debug("[load] There is no file: " + storeFile.getAbsolutePath());
+		}
 		
 		return list;
+	}
+	
+	private static void error(String text){
+		System.out.println(text);
+	}
+	
+	private static void debug(String text){
+		System.out.println(text);
 	}
 
 }
