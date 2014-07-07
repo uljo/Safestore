@@ -42,8 +42,23 @@ public class SafeStoreGui extends Application{
 		//group.getChildren().add(viewMgr);
 		
 		Scene scene = new Scene(viewMgr, width, height);
-		scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 		
+		String cssPath = "se/cenote/safestore/ui/application.css";
+		
+		//URL url = getClass().getResource(cssPath);
+		//System.out.println("[start] url: " + url);
+		
+		scene.getStylesheets().add(cssPath);
+		
+		
+		/*
+		URL url = getClass().getResource("/application.css");
+		if(url != null)
+			scene.getStylesheets().add(url.toExternalForm());
+		else{
+			//System.out.println("[start] Cant find url: " + url);
+		}
+		*/
 		stage.setScene(scene);
 		stage.setTitle(TITLE);
 		stage.show();

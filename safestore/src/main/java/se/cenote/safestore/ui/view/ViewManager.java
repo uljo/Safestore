@@ -1,5 +1,6 @@
 package se.cenote.safestore.ui.view;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,8 +67,11 @@ public class ViewManager extends BorderPane{
 		//labelPane.setStyle("-fx-background-color: red");
 		
 		ImageView imgView = new ImageView();
-        Image vaultImg = new Image(EntryView.class.getResourceAsStream("vault-1.png"), 100, 100, true, true);
-        imgView.setImage(vaultImg);
+		InputStream in = EntryView.class.getResourceAsStream("/se/cenote/safestore/ui/vault-1.png");
+		if(in != null){
+			Image vaultImg = new Image(in, 100, 100, true, true);
+			imgView.setImage(vaultImg);
+		}
         imgView.setOnMouseClicked(e -> logOut());
 		
         BorderPane topPane = new BorderPane();
