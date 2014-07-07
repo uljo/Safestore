@@ -2,11 +2,14 @@ package se.cenote.safestore.ui.entry;
 
 import java.time.LocalDateTime;
 
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -211,6 +214,16 @@ public class EntryPanel extends BorderPane{
 		pwdLbl = new Label();
 		pwdFld = new TextField();
 		pwdFld.setPrefWidth(60);
+		pwdFld.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+		    @Override
+		    public void handle(KeyEvent event) {
+		        //if(event.getCode() == KeyCode.TAB && event.isShiftDown()) {
+		        if(event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.TAB) {
+		            event.consume();
+		            commentsFld.requestFocus();
+		        }
+		    }
+		});
 		
 		commentsFld = new TextArea();
 		commentsFld.setPrefRowCount(4);

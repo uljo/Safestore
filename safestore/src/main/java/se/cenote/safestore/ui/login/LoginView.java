@@ -66,6 +66,8 @@ public class LoginView extends BaseView{
 		firstTimeLbl.setWrapText(true);
 		
 		passwordFld = new PasswordField();
+		passwordFld.setOnAction(e -> login());
+		
 		loginBtn = new Button("Logga in");
 		loginBtn.setOnAction(e -> login());
 	}
