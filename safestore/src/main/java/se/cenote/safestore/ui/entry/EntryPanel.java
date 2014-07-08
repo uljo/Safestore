@@ -2,22 +2,29 @@ package se.cenote.safestore.ui.entry;
 
 import java.time.LocalDateTime;
 
+import javafx.animation.Animation;
+import javafx.animation.Transition;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.text.Font;
+import javafx.util.Duration;
 import se.cenote.safestore.AppContext;
 import se.cenote.safestore.domain.CalendarUtil;
 import se.cenote.safestore.domain.Entry;
+import se.cenote.safestore.ui.widget.DotLabel;
 
 public class EntryPanel extends BorderPane{
 	
@@ -25,11 +32,15 @@ public class EntryPanel extends BorderPane{
 	
 	private Label nameLbl;
 	private Label userLbl;
-	private Label pwdLbl;
+	//private Label pwdLbl;
+	private DotLabel pwdLbl;
 	
 	private TextField nameFld;
 	private TextField userFld;
 	private TextField pwdFld;
+	
+	//private Button copyBtn;
+	//private Node copyIcon;
 	
 	private TextArea commentsFld;
 	private Label createdLbl;
@@ -112,13 +123,22 @@ public class EntryPanel extends BorderPane{
 			}
 		}
 		else{
+			
+			String oldName = this.entry.getName();
+			
 			this.entry.setName(name);
 			this.entry.setUsername(user);
 			this.entry.setPwd(pwd);
 			this.entry.setComments(comments);
 			this.entry.setEdited(LocalDateTime.now());
 			
+			AppContext.getInstance().getApp().update(oldName, this.entry);
+			
 			editedLbl.setText(format(this.entry.getEdited()));
+			
+			if(lst != null){
+				lst.onSave(entry);
+			}
 		}
 		
 		toggleMode(false);
@@ -196,6 +216,8 @@ public class EntryPanel extends BorderPane{
 		nameFld.setPrefWidth(60);
 		
 		userLbl = new Label();
+		userLbl.setOnMouseClicked(e -> copyUsername(e));
+		
 		userFld = new TextField();
 		userFld.setPrefWidth(60);
 		
@@ -211,13 +233,15 @@ public class EntryPanel extends BorderPane{
 		});
 		*/
 		
-		pwdLbl = new Label();
+		//pwdLbl = new FlashLabel();
+		pwdLbl = new DotLabel();
+		pwdLbl.setOnMouseClicked(e -> copyPwd(e));
+		
 		pwdFld = new TextField();
 		pwdFld.setPrefWidth(60);
 		pwdFld.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
 		    @Override
 		    public void handle(KeyEvent event) {
-		        //if(event.getCode() == KeyCode.TAB && event.isShiftDown()) {
 		        if(event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.TAB) {
 		            event.consume();
 		            commentsFld.requestFocus();
@@ -225,16 +249,19 @@ public class EntryPanel extends BorderPane{
 		    }
 		});
 		
+		
+		//copyIcon = FontAwesome.Glyph.COPY.create();
+		//copyBtn = new Button("", copyIcon);
+		//copyBtn.setOnAction(e -> copyPwd());
+		
 		commentsFld = new TextArea();
 		commentsFld.setPrefRowCount(4);
 		commentsFld.setEditable(false);
 		
 		createdLbl = new Label(format(LocalDateTime.now()));
-		//createdLbl.setFont(Font.font(9));
 		createdLbl.setStyle("-fx-font-size: 10pt;");
 		
 		editedLbl = new Label("--");
-		//editedLbl.setFont(Font.font(9));
 		editedLbl.setStyle("-fx-font-size: 10pt;");
 		
 		
@@ -250,6 +277,54 @@ public class EntryPanel extends BorderPane{
 		cancelBtn = new Button("Avbryt");
 		cancelBtn.setOnAction(e -> doCancel());
 		
+	}
+
+	private void copyUsername(MouseEvent e) {
+		if(e.getButton() == MouseButton.SECONDARY){
+			
+			String text = entry.getUsername();
+			Label lbl = userLbl;
+			
+			
+			final Animation animation = new Transition() {
+		        {
+		            setCycleDuration(Duration.millis(500));
+		        }
+		    
+		        protected void interpolate(double frac) {
+		            final int length = text.length();
+		            final int n = Math.round(length * (float) frac);
+		            lbl.setText(text.substring(0, n));
+		        }
+		    };
+		    animation.play();
+		    
+			copyText(text);
+		}
+	}
+	
+	private void copyPwd(MouseEvent e) {
+		if(e.getButton() == MouseButton.SECONDARY){
+			
+			pwdLbl.play();
+			
+			String text = entry != null ? new String(entry.getPwd()) : "";
+			copyText(text);
+		}
+	}
+	
+
+	/**
+	 * Copy specified text to clipboard.
+	 * 
+	 * @param text specified text tpo be copied.
+	 */
+	private void copyText(String text) {
+		Clipboard clipboard = Clipboard.getSystemClipboard();
+		ClipboardContent content = new ClipboardContent();
+		
+		content.putString(text);
+		clipboard.setContent(content);
 	}
 
 	private void layoutComponents() {
@@ -274,6 +349,7 @@ public class EntryPanel extends BorderPane{
 		
 		grid.add(new Label("Lösenord:"), 0, 2);
 		grid.add(pwdLbl, 1, 2);
+		//grid.add(copyBtn, 2, 2);
 		
 		
 		Label notePrompt = new Label("Notering:");
