@@ -1,3 +1,25 @@
+/**
+ * SafeStore - A simple desktop tool for storing login credentials.
+ *
+ * Copyright (C) 2014 Ulf M Johannesson.
+ *
+ * This file is part of SafeStore.
+ * 
+ * SafeStore is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SafeStore is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SafeStore. If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 package se.cenote.safestore;
 
 import java.time.Duration;
@@ -14,6 +36,7 @@ import se.cenote.safestore.domain.Settings;
 import se.cenote.safestore.domain.Storage;
 import se.cenote.safestore.domain.crypto.CryptoManager;
 import se.cenote.safestore.ui.SafeStoreGui;
+
 
 public class SafeStoreApp {
 	
@@ -120,6 +143,15 @@ public class SafeStoreApp {
 		System.out.println("[add] Added " + entry + " as name: " + name);
 		
 		return entry;
+	}
+	
+	public void update(String name, Entry entry){
+		if(entry != null && entryMap.containsKey(name)){
+			entryMap.remove(name);
+			entryMap.put(entry.getName(), entry);
+			
+			System.out.println("[update] Updated " + entry);
+		}
 	}
 	
 	private void storeEntries(){

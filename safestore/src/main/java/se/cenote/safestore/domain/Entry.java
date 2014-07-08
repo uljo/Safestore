@@ -74,5 +74,17 @@ public class Entry implements Serializable{
 			this.edited = edited;
 		}
 
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			for(int i = 0; i < pwd.length; i++){
+				builder.append("*");
+			}
+			String pass = builder.toString();
+			return "Entry(name=" + name + ", username=" + username + ", pwd="
+					+ pass/*Arrays.toString(pwd)*/ + ", comments=" + comments
+					+ ", created=" + CalendarUtil.formatDateTime(created) + ", edited=" + CalendarUtil.formatDateTime(edited) + ")";
+		}
+
 		
 }
