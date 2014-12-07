@@ -54,7 +54,7 @@ public class EntryView extends BaseView{
 		nameList.setPadding(new Insets(5));
 
 		nameList.getSelectionModel().selectedItemProperty().addListener((ov, o, n) -> {selectEntry(n);});
-		nameList.setPrefSize(100, 200);
+		nameList.setPrefSize(160, 200);
 		
 		lst = new ListListener();
 		
