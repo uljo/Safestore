@@ -2,14 +2,17 @@ package se.cenote.safestore.domain;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import se.cenote.safestore.AppContext;
+import se.cenote.safestore.domain.crypto.InvalidKeyLengthException;
 
 public class Storage {
 	
 	private static final String FILE_NAME = ".safeStore";
+	
+	private static final String BAR = "\\|";
+	private static final String NL = "\n";
 
 	private File storeFile;
 	
@@ -25,7 +28,7 @@ public class Storage {
 		return storeFile;
 	}
 
-	public void store(List<Entry> entries, char[] pwd){
+	public void store(List<Entry> entries, char[] pwd) throws InvalidKeyLengthException{
 		
 		if(!entries.isEmpty()){
 			
@@ -37,7 +40,7 @@ public class Storage {
 				buffer.append("\t");
 				buffer.append(new String(entry.getPwd()));
 				buffer.append("\t");
-				buffer.append(new String(entry.getComments()));
+				buffer.append(new String(removeNL(entry.getComments())));
 				buffer.append("\t");
 				buffer.append(new String(CalendarUtil.formatDateTime(entry.getCreated())));
 				buffer.append("\t");
@@ -50,6 +53,15 @@ public class Storage {
 		}
 	}
 	
+	private String removeNL(String text) {
+		return text.replaceAll(NL, BAR);
+	}
+	
+	private String addNL(String text) {
+		return text.replaceAll(BAR, NL);
+	}
+	
+
 	public List<Entry> load(char[] pwd) throws IllegalArgumentException{
 		
 		List<Entry> list = new ArrayList<Entry>();
@@ -74,7 +86,7 @@ public class Storage {
 						String name = parts[0];
 						String username = parts[1];
 						String password = parts[2];
-						String comments = parts[3];
+						String comments = addNL(parts[3]);
 						
 						String createdText = null;
 						if(parts.length > 4)
