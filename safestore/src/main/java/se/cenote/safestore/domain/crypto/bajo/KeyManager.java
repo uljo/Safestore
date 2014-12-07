@@ -1,4 +1,4 @@
-package se.cenote.safestore.domain.crypto;
+package se.cenote.safestore.domain.crypto.bajo;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -33,7 +33,31 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class KeyManager {
 	
+	private static final String BAR = "\\|";
+	private static final String NL = "\n";
+	
 	public static void main(String[] args){
+		
+		String s = "Managment User for Wildfly\nrad2";
+		
+		String s2 = removeNL(s);
+		
+		String s3 = addNL(s2);
+		
+		System.out.println("1: " + s);
+		System.out.println("2: " + s2);
+		System.out.println("3: " + s3);
+	}
+	
+	private static String removeNL(String text) {
+		return text.replaceAll(NL, BAR);
+	}
+	
+	private static String addNL(String text) {
+		return text.replaceAll(BAR, NL);
+	}
+	
+	public void test4(){
 		
 		String text = "Hello world!";
 		
