@@ -12,7 +12,7 @@ import se.cenote.safestore.ui.view.ViewManager;
 public class SafeStoreGui extends Application{
 	
 	private static final String TITLE = "SafeStore";
-	private double width = 440;
+	private double width = 600;
 	private double height = 540;
 	
 	private ViewManager viewMgr;
