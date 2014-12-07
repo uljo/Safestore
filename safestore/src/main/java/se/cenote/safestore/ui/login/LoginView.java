@@ -7,7 +7,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
 
 import org.controlsfx.dialog.Dialogs;
 
@@ -53,7 +52,7 @@ public class LoginView extends BaseView{
 			//passwordFld.setTextFill(Color.rgb(210, 39, 30));
 			
 			Dialogs.create()
-	        .owner(null)
+	        .owner(getScene().getWindow())
 	        .title("Error Dialog")
 	        .message("Inloggning godkändes ej!")
 	        .showError();
