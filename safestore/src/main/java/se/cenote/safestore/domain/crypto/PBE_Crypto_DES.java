@@ -16,8 +16,26 @@ public final class PBE_Crypto_DES implements PBE_Crypto{
 	
 	public static final String ALGO = "PBEWithMD5AndTripleDES";
 	
+	private static final int SALT_LENGTH = 8;
+	
+	private int iterationCount = 12;
+	private String encoding = "UTF-8";
+	
+	public PBE_Crypto_DES(int iterationCount, String encoding){
+		this.iterationCount = iterationCount;
+		this.encoding = encoding;
+	}
+	
 	public String getName(){
 		return ALGO;
+	}
+	
+	public String getEncoding(){
+		return encoding;
+	}
+	
+	public int getIterationCount(){
+		return iterationCount;
 	}
 	
 	public EncryptedData encrypt(String text, char[] pwd){
@@ -25,17 +43,15 @@ public final class PBE_Crypto_DES implements PBE_Crypto{
 		
 		try{
 			
-			byte[] salt = new byte[8];
+			byte[] salt = new byte[SALT_LENGTH];
 			new SecureRandom().nextBytes(salt);
-			
-			int iterationCount = 12;
 			
 			SecretKey secretKey = generateSecretKey(pwd, salt, iterationCount);
 			
 			Cipher cipher = Cipher.getInstance(secretKey.getAlgorithm());
 			AlgorithmParameterSpec paramSpec = new PBEParameterSpec(salt, iterationCount);
 			cipher.init(Cipher.ENCRYPT_MODE, secretKey, paramSpec);
-			byte[] encryptedData = cipher.doFinal(text.getBytes("UTF-8"));
+			byte[] encryptedData = cipher.doFinal(text.getBytes(encoding));
 			
 			data = new EncryptedData(encryptedData, null, salt);
 		}
@@ -50,10 +66,8 @@ public final class PBE_Crypto_DES implements PBE_Crypto{
 		byte[] decrypted = null;
 		
 		byte[] encryptedText = data.getEncryptedBytes();
-		byte[] iv = null;
+		//byte[] iv = null;
 		byte[] salt = data.getSalt();
-		
-		int iterationCount = 12;
 		
 		try{
 			if(encryptedText != null){
@@ -80,9 +94,6 @@ public final class PBE_Crypto_DES implements PBE_Crypto{
 		try{
 			KeySpec keySpec = new PBEKeySpec(pwd, salt, iterationCount);
 			secretKey = SecretKeyFactory.getInstance(ALGO).generateSecret(keySpec);
-		
-			//System.out.println("[generateSecretKey] algo=" + secretKey.getAlgorithm());
-
 		}
 		catch(Exception e){
 			e.printStackTrace();

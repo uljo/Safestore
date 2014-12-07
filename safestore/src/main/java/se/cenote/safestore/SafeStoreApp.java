@@ -35,6 +35,7 @@ import se.cenote.safestore.domain.Entry;
 import se.cenote.safestore.domain.Settings;
 import se.cenote.safestore.domain.Storage;
 import se.cenote.safestore.domain.crypto.CryptoManager;
+import se.cenote.safestore.domain.crypto.InvalidKeyLengthException;
 import se.cenote.safestore.ui.SafeStoreGui;
 
 
@@ -59,6 +60,7 @@ public class SafeStoreApp {
 	public SafeStoreApp(){
 		
 		cryptoMgr = new CryptoManager();
+		System.out.println("[SafeStoreApp.init] Selected crypto=" + cryptoMgr.getSelectedCryptoName() + ", keyLength=" + cryptoMgr.getSelectedKeyLength());
 		
 		entryMap = new HashMap<String, Entry>();
 		
@@ -76,8 +78,8 @@ public class SafeStoreApp {
 		try{
 			loadEntries(pwd);
 		
-			settings = new Settings(cryptoMgr.getCryptos());
-			settings.setSeletedCrypto(cryptoMgr.getSelectedCrypto());
+			settings = new Settings(cryptoMgr.getCryptoNames(), cryptoMgr.getSelectedKeyLength());
+			settings.setSeletedCrypto(cryptoMgr.getSelectedCryptoName());
 			settings.setPath(storage.getFile().getAbsolutePath());
 			
 			loginTime = LocalDateTime.now();
@@ -156,8 +158,14 @@ public class SafeStoreApp {
 	
 	private void storeEntries(){
 		List<Entry> list = new ArrayList<Entry>(entryMap.values());
-		storage.store(list, pwd);
-		System.out.println("[storeEntries] stored " + list.size() + " entities.");
+		try {
+			storage.store(list, pwd);
+			System.out.println("[storeEntries] stored " + list.size() + " entities.");
+		} 
+		catch (InvalidKeyLengthException e) {
+			System.out.println("[storeEntries] invalid key length: " + e.getMessage());
+		}
+		
 	}
 
 	

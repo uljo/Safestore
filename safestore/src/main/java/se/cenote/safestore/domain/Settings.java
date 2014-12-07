@@ -9,10 +9,14 @@ public class Settings {
 	private List<String> cryptos;
 	private String selectedCrypto;
 	
-	public Settings(List<String> cryptos){
+	private int keyLength;
+	
+	public Settings(List<String> cryptos, int keyLength){
 		path = System.getProperty("user.home");
 		
 		this.cryptos = cryptos;
+		
+		this.keyLength = keyLength;
 	}
 	
 	public String getPath(){
@@ -21,6 +25,14 @@ public class Settings {
 	
 	public void setPath(String path){
 		this.path = path;
+	}
+	
+	public int getKeyLength(){
+		return keyLength;
+	}
+	
+	public void setKeyLength(int keyLength){
+		this.keyLength = keyLength;
 	}
 
 	public List<String> getCryptos() {

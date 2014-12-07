@@ -46,15 +46,20 @@ public class KeyManagerTest {
 		System.out.println("AES - Pwd: " + new String(pwd));
 		System.out.println("Plaintext: " + text);
 	
-		PBE_Crypto pBE_Crypto = new PBE_Crypto_AES();
-		EncryptedData data = pBE_Crypto.encrypt(text, pwd);
-		System.out.println("Encrypted: " + data.getEncryptedBase64());
-		
-		String text2 = pBE_Crypto.decrypt(data, pwd);
-		long stop = System.currentTimeMillis();
-		
-		System.out.println("Decrypted: " + text2);
-		System.out.println("Time: " + (stop-start) + " msek.");
+		try{
+			PBE_Crypto pBE_Crypto = new PBE_Crypto_AES(128, "UTF-8");
+			EncryptedData data = pBE_Crypto.encrypt(text, pwd);
+			System.out.println("Encrypted: " + data.getEncryptedBase64());
+			
+			String text2 = pBE_Crypto.decrypt(data, pwd);
+			long stop = System.currentTimeMillis();
+			
+			System.out.println("Decrypted: " + text2);
+			System.out.println("Time: " + (stop-start) + " msek.");
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 	public static void test2(){
@@ -65,15 +70,21 @@ public class KeyManagerTest {
 		System.out.println("DES - Pwd: " + new String(pwd));
 		System.out.println("Plaintext: " + text);
 	
-		PBE_Crypto pBE_Crypto = new PBE_Crypto_DES();
-		EncryptedData data = pBE_Crypto.encrypt(text, pwd);
-		System.out.println("Encrypted: " + data.getEncryptedBase64());
+		try{
+			PBE_Crypto pBE_Crypto = new PBE_Crypto_DES(12, "UTF-8");
+			EncryptedData data = pBE_Crypto.encrypt(text, pwd);
+			System.out.println("Encrypted: " + data.getEncryptedBase64());
+			
+			String text2 = pBE_Crypto.decrypt(data, pwd);
+			long stop = System.currentTimeMillis();
+			
+			System.out.println("Decrypted: " + text2);
+			System.out.println("Time: " + (stop-start) + " msek.");
 		
-		String text2 = pBE_Crypto.decrypt(data, pwd);
-		long stop = System.currentTimeMillis();
-		
-		System.out.println("Decrypted: " + text2);
-		System.out.println("Time: " + (stop-start) + " msek.");
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 
 
