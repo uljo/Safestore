@@ -5,7 +5,7 @@ This is a small desktop application for storing passwords in a secure way.
 The application is implemented in Java with GUI in JavaFX.
 
 
-![alt tag](https://raw.github.com/uljo/Safestore/safestore/src/main/resources/se/cenote/safestore/ui/vault-1.png)
+![application icon](src/main/resources/se/cenote/safestore/ui/vault-1.png)
 
 ##Pre-requisites
 * Java 8 (Update 40)
