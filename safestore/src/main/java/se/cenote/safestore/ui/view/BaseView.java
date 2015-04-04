@@ -7,6 +7,9 @@ public abstract class BaseView extends BorderPane implements View{
 
 	private ViewManager viewMgr;
 	
+
+	private boolean dirty;
+	
 	public BaseView(ViewManager viewMgr){
 		this.viewMgr = viewMgr;
 	}
@@ -15,13 +18,9 @@ public abstract class BaseView extends BorderPane implements View{
 		return getClass().getName();
 	}
 	
-	public void onShow(){
-		
-	}
+	public void onShow(){}
 	
-	public void onHide(){
-		
-	}
+	public void onHide(){}
 	
 	public Parent getView(){
 		return this;
@@ -29,5 +28,13 @@ public abstract class BaseView extends BorderPane implements View{
 	
 	public ViewManager getViewManger(){
 		return viewMgr;
+	}
+	
+	protected void setDirty(boolean value){
+		this.dirty = value;
+	}
+	
+	public boolean isDirty(){
+		return dirty;
 	}
 }

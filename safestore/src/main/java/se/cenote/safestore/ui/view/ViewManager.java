@@ -3,6 +3,7 @@ package se.cenote.safestore.ui.view;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
@@ -10,7 +11,10 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Reflection;
@@ -23,14 +27,23 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 import org.controlsfx.glyphfont.FontAwesome;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import se.cenote.safestore.AppContext;
+import se.cenote.safestore.ui.SafeStoreGui;
 import se.cenote.safestore.ui.entry.EntryView;
 import se.cenote.safestore.ui.login.LoginView;
 import se.cenote.safestore.ui.settings.SettingView;
 
 
 public class ViewManager extends BorderPane{
+	
+	private static final String TITLE_STYLE = "-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 24pt;";
+	
+	private static final String ICON_VAULT = "/se/cenote/safestore/ui/vault-1.png";
+
+	private static Logger logger = LoggerFactory.getLogger(ViewManager.class);
 	
 	private View currView;
 	private Map<String, View> viewsByName;
@@ -44,47 +57,45 @@ public class ViewManager extends BorderPane{
 	private static final String GRADIENT_3 = "-fx-background-color: linear-gradient(#69B4E4 0%, #0070B9 100%);";
 	
 	public ViewManager(){
+		
+		initComponents();
+		layoutComponents();
+	}
+	
+	private void initComponents(){
+		
 		viewsByName = new HashMap<String, View>();
 		
-		//GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
 		backIcon = FontAwesome.Glyph.BACKWARD.create();
 		gearIcon = FontAwesome.Glyph.GEAR.create();
 		
-		Label lbl = new Label("SafeStore");
-		lbl.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 24pt;");
+        settingsBtn = new Button("", gearIcon);
+		settingsBtn.setOnAction(e -> flip());
+		settingsBtn.setVisible(false);
+	}
+	
+	private void layoutComponents(){
 		
-		DropShadow effect = new DropShadow();
-		effect.setOffsetY(5.0);
-        effect.setOffsetX(5.0);
-        effect.setColor(Color.GRAY);
-        Reflection reflection = new Reflection(8, 20, 70, 0);
-        //effect.setInput(reflection);    
-		lbl.setEffect(effect);
+		Label titleLbl = buildTitle(SafeStoreGui.TITLE);
 		
-		FlowPane labelPane = new FlowPane();
-		labelPane.getChildren().add(lbl);
-		labelPane.setAlignment(Pos.CENTER);
+		ImageView imgView = buildIcon(ICON_VAULT);
+        imgView.setOnMouseClicked(e -> logOut());
+		
+
+		FlowPane titlePane = new FlowPane();
+		titlePane.getChildren().add(titleLbl);
+		titlePane.setAlignment(Pos.CENTER);
 		//labelPane.setStyle("-fx-background-color: red");
 		
-		ImageView imgView = new ImageView();
-		InputStream in = EntryView.class.getResourceAsStream("/se/cenote/safestore/ui/vault-1.png");
-		if(in != null){
-			Image vaultImg = new Image(in, 100, 100, true, true);
-			imgView.setImage(vaultImg);
-		}
-        imgView.setOnMouseClicked(e -> logOut());
 		
         BorderPane topPane = new BorderPane();
         topPane.setPadding(new Insets(5));
         topPane.setLeft(imgView);
-        topPane.setCenter(labelPane);
+        topPane.setCenter(titlePane);
 		//topPane.setRight(settingsBtn);
         //topPane.setStyle("-fx-background-color: slateblue; -fx-text-fill: white;");
         topPane.setStyle(GRADIENT_3);
         
-        settingsBtn = new Button("", gearIcon);
-		settingsBtn.setOnAction(e -> flip());
-		settingsBtn.setVisible(false);
         
         FlowPane menuPane = new FlowPane();
         menuPane.setPadding(new Insets(4));
@@ -96,8 +107,38 @@ public class ViewManager extends BorderPane{
 		setTop(vBox);
 	}
 	
+	private Label buildTitle(String text){
+		Label lbl = new Label(text);
+		lbl.setStyle(TITLE_STYLE);
+		
+		DropShadow effect = new DropShadow();
+		effect.setOffsetY(5.0);
+        effect.setOffsetX(5.0);
+        effect.setColor(Color.GRAY);
+        Reflection reflection = new Reflection(8, 20, 70, 0);
+        //effect.setInput(reflection);    
+		lbl.setEffect(effect);
+		return lbl;
+	}
+	
+	private ImageView buildIcon(String iconPath){
+		ImageView imgView = new ImageView();
+		InputStream in = EntryView.class.getResourceAsStream(iconPath);
+		if(in != null){
+			Image vaultImg = new Image(in, 100, 100, true, true);
+			imgView.setImage(vaultImg);
+		}
+		return imgView;
+	}
+	
 	public void logOut(){
 		if(currView != null && currView.getName() != LoginView.class.getName()){
+			
+			if(currView.isDirty()){
+				showDirtyWarning();
+				return;
+			}
+			
 			AppContext.getInstance().getApp().logout();
 			showLoginView();
 		}
@@ -106,15 +147,32 @@ public class ViewManager extends BorderPane{
 	public void flip(){
 		
 		if(currView != null && currView.getName() == SettingView.class.getName()){
+			
+			if(currView.isDirty()){
+				showDirtyWarning();
+				return;
+			}
+			
 			show(EntryView.class.getName());
 			//settingsBtn.setText("Inställningar");
 			settingsBtn.setGraphic(gearIcon);
+
 		}
 		else{
 			show(SettingView.class.getName());
 			//settingsBtn.setText("Tillbaka");
 			settingsBtn.setGraphic(backIcon);
 		}
+	}
+	
+	private void showDirtyWarning(){
+		
+		Alert alert = new Alert(AlertType.WARNING);
+		alert.setTitle("Varning");
+		alert.setHeaderText("Du har osparade ändringar!");
+		alert.setContentText("Du måste spara eller avbryta ändringar innan du kan lämna vyn.");
+
+		alert.showAndWait();
 	}
 	
 	public void add(View view){
@@ -138,7 +196,7 @@ public class ViewManager extends BorderPane{
 		if(!settingsBtn.isVisible()){
 			settingsBtn.setGraphic(gearIcon);
 			settingsBtn.setVisible(true);
-			System.out.println("Enable settings btn: " + settingsBtn.isVisible());
+			logger.debug("Enable settings btn: " + settingsBtn.isVisible());
 		}
 	}
 	
@@ -149,7 +207,14 @@ public class ViewManager extends BorderPane{
 	public void show(String name) {
 		
 		if(currView != null){
+			
+			if(currView.isDirty()){
+				showDirtyWarning();
+				return;
+			}
+			
 			currView.onHide();
+
 		}
 		
 		View prevView = currView;
@@ -170,7 +235,7 @@ public class ViewManager extends BorderPane{
 			}
 		}
 		else{
-			System.err.println("[show] Cant find view: " + name + ". Availables: " + viewsByName.keySet());
+			logger.error("[show] Cant find view: " + name + ". Availables: " + viewsByName.keySet());
 		}
 	}
 	
@@ -187,7 +252,6 @@ public class ViewManager extends BorderPane{
 			this.from = from;
 			this.to = to;
 			
-			//int location = 600;
 			double location = getLocation(from);
 			
 			to.setTranslateY(location * -1);
@@ -200,13 +264,13 @@ public class ViewManager extends BorderPane{
 			double sceneHeight = getScene().getHeight();
 			double nodeHeight = from.getLayoutBounds().getHeight();
 			double location = nodeHeight + ((sceneHeight - nodeHeight)/2);
-			System.out.println("[init] location=" + location);
+			//logger.debug("[init] location=" + location);
 			return location;
 		}
 		
 		public void play(){
 			slideOut.play();
-			System.out.println("[event] Starting trans out...");
+			//logger.debug("[event] Starting trans out...");
 		}
 		
 		private TranslateTransition getTransition(double duration, double location, boolean slideOut){

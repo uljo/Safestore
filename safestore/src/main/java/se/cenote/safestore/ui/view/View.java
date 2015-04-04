@@ -8,4 +8,5 @@ public interface View{
 	public Parent getView();
 	public void onShow();
 	public void onHide();
+	public boolean isDirty();
 }
