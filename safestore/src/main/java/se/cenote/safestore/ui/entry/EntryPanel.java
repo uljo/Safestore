@@ -22,9 +22,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.util.Duration;
 import se.cenote.safestore.AppContext;
-import se.cenote.safestore.domain.CalendarUtil;
 import se.cenote.safestore.domain.Entry;
 import se.cenote.safestore.ui.widget.DotLabel;
+import se.cenote.util.calendar.CalendarUtil;
 
 public class EntryPanel extends BorderPane{
 	

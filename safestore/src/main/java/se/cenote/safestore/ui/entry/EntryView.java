@@ -2,6 +2,9 @@ package se.cenote.safestore.ui.entry;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -14,6 +17,8 @@ import se.cenote.safestore.ui.view.BaseView;
 import se.cenote.safestore.ui.view.ViewManager;
 
 public class EntryView extends BaseView{
+	
+	private static Logger logger = LoggerFactory.getLogger(EntryView.class);
 
 	private ListView<String> nameList;
 	private ListListener lst;
@@ -39,7 +44,7 @@ public class EntryView extends BaseView{
 	public void onShow() {
 		List<String> names = AppContext.getInstance().getApp().getNames();
 		update(names);
-		System.out.println("[onShow] names=" + names);
+		logger.debug("[onShow] names=" + names);
 	}
 
 	private void selectEntry(String name){
