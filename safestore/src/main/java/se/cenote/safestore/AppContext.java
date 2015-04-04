@@ -1,5 +1,12 @@
 package se.cenote.safestore;
 
+
+/**
+ * Singleton helper class for providing central access to main Application <code>SafeStoreApp</code>
+ * 
+ * @author uffe
+ *
+ */
 public class AppContext {
 	
 	private static AppContext INSTANCE = new AppContext();

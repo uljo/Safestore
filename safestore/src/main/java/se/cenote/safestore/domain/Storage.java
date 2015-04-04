@@ -4,30 +4,81 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.cenote.safestore.AppContext;
-import se.cenote.safestore.domain.crypto.InvalidKeyLengthException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import se.cenote.safestore.domain.crypto.CryptoManager;
+import se.cenote.safestore.domain.crypto.InvalidKeyLengthException;
+import se.cenote.util.calendar.CalendarUtil;
+
+/**
+ * Class responsible for reading from/to storage file.
+ * 
+ * @author uffe
+ *
+ */
 public class Storage {
-	
-	private static final String FILE_NAME = ".safeStore";
 	
 	private static final String BAR = "\\|";
 	private static final String NL = "\n";
+	
+	private Logger logger = LoggerFactory.getLogger(Storage.class);
 
 	private File storeFile;
+	private CryptoManager cryptoMgr;
 	
-	public Storage(){
-		storeFile = new File(System.getProperty("user.home"), FILE_NAME);
+	/**
+	 * Constructor with specified path for storage file.
+	 * 
+	 * @param file specified storage file.
+	 * @throws InvalidKeyLengthException 
+	 */
+	public Storage(Settings settings) throws InvalidKeyLengthException{
+		storeFile = settings.getStorageFile();
+		
+		cryptoMgr = new CryptoManager(settings.getSeletedCrypto(), settings.getKeyLength());
 	}
 	
+	/**
+	 * Check if store has been initialized.
+	 * 
+	 * @return true if store has been initialized, else false,
+	 */
 	public boolean isInitialized() {
 		return storeFile.exists();
 	}
 	
+	/**
+	 * Retrieve the storage file.
+	 * 
+	 * @return
+	 */
 	public File getFile(){
 		return storeFile;
 	}
+	
+	public void update(File file, String crypto, int keyLength, char[] pwd) {
+		try {
+			
+			List<Entry> entries = load(pwd);
+			
+			storeFile = file;
+			cryptoMgr = new CryptoManager(crypto, keyLength);
+			
+			store(entries, pwd);
+		} 
+		catch(InvalidKeyLengthException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
+	/**
+	 * Store specified entries to storage file.
+	 * 
+	 * @param entries specified entries to be stored
+	 * @param pwd password for opening the storage file
+	 * @throws InvalidKeyLengthException if JDK security policy has wrong key length.
+	 */
 	public void store(List<Entry> entries, char[] pwd) throws InvalidKeyLengthException{
 		
 		if(!entries.isEmpty()){
@@ -49,30 +100,28 @@ public class Storage {
 			}
 			buffer.replace(buffer.length()-1, buffer.length(), "");
 			
-			AppContext.getInstance().getApp().getCrypoManager().storeSecure(buffer.toString(), storeFile, pwd);
+			cryptoMgr.storeSecure(buffer.toString(), storeFile, pwd);
 		}
 	}
 	
-	private String removeNL(String text) {
-		return text.replaceAll(NL, BAR);
-	}
-	
-	private String addNL(String text) {
-		return text.replaceAll(BAR, NL);
-	}
-	
-
+	/**
+	 * Retrieve all stored entries from storage file.
+	 * 
+	 * @param pwd password for opening the storage file
+	 * @return
+	 * @throws IllegalArgumentException
+	 */
 	public List<Entry> load(char[] pwd) throws IllegalArgumentException{
 		
 		List<Entry> list = new ArrayList<Entry>();
 		
 		if(storeFile.exists()){
 			
-			debug("[load] Trying open file: " + storeFile.getAbsolutePath());
+			logger.debug("[load] Trying open file: " + storeFile.getAbsolutePath());
 			
 			String data = null;
 			try{
-				data = AppContext.getInstance().getApp().getCrypoManager().readSecure(storeFile, pwd);
+				data = cryptoMgr.readSecure(storeFile, pwd);
 				
 				if(data != null){
 					
@@ -104,24 +153,37 @@ public class Storage {
 				}
 			}
 			catch(Exception e){
-				error("[load] Caught " + e);
+				logger.error("[load] Caught " + e);
 				throw new IllegalArgumentException(e);
 			}
 			
 		}
 		else{
-			debug("[load] There is no file: " + storeFile.getAbsolutePath());
+			logger.debug("[load] There is no file: " + storeFile.getAbsolutePath());
 		}
 		
 		return list;
 	}
 	
-	private static void error(String text){
-		System.out.println(text);
+	/**
+	 * Replace any occurrences of new-line characters in specified text string with bar-characters.
+	 * 
+	 * @param text specified text string
+	 * @return text string without new-line characters.
+	 */
+	private String removeNL(String text) {
+		return text.replaceAll(NL, BAR);
 	}
 	
-	private static void debug(String text){
-		System.out.println(text);
+	/**
+	 * Replace any occurrences of bar-characters in specified text string with new-line-characters.
+	 * 
+	 * @param text specified text string
+	 * @return text string without new-line characters.
+	 */
+	private String addNL(String text) {
+		return text.replaceAll(BAR, NL);
 	}
 
+	
 }
