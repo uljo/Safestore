@@ -1,4 +1,4 @@
-package se.cenote.safestore.domain;
+package se.cenote.util.calendar;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
