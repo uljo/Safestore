@@ -6,7 +6,7 @@ The application is implemented in Java with GUI in JavaFX.
 s
 
 ##Pre-requisites
-* Java 8
+* Java 8 (Update 40)
 * Maven 3
 
 ##Licensing
