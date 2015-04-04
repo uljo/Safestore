@@ -81,7 +81,6 @@ public final class PBE_Crypto_DES implements PBE_Crypto{
 			}
 		}
 		catch(Exception e){
-			System.out.println("[decrypt] Caught " + e);
 			throw new IllegalArgumentException(e);
 		}
 		return decrypted != null ? new String(decrypted) : null;

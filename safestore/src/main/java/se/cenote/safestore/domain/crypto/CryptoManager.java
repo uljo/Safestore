@@ -10,6 +10,10 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class CryptoManager {
 	
 	private static Integer[] keyLengths = {128, 196, 256};
@@ -18,150 +22,16 @@ public class CryptoManager {
 	
 	private static final String UTF8 = "UTF-8";
 	
-	private boolean strongChiper;
-	
-	private PBE_Crypto cryptoAES;
-	private PBE_Crypto cryptoDES;
-	
-	private String selectedCryptoName;
-	
-	private int selectedKeyLength;
-	private String selectedEncoding = UTF8;
+	private static Logger logger = LoggerFactory.getLogger(CryptoManager.class);
 
-	public static void main(String[] args) {
-		
-		test1();
-	}
+	private static boolean strongChiper = CryptoManager.isAESKeyLengthSupported(keyLengths[2]);
 	
-	public CryptoManager(){
-		
-		strongChiper = CryptoManager.isAESKeyLengthSupported(keyLengths[2]);
-		
-		selectedKeyLength = strongChiper ? keyLengths[2] : keyLengths[0];
-		
-		try{
-			cryptoAES = new PBE_Crypto_AES(selectedKeyLength, selectedEncoding);
-			cryptoDES = new PBE_Crypto_DES(DES_ITERATION_COUNT, selectedEncoding);
-			
-			selectedCryptoName = PBE_Crypto_AES.ALGO;
-		}
-		catch(InvalidKeyLengthException impossible){}
-	}
+	private static String defaultCrypto = PBE_Crypto_AES.ALGO;
+	
+	private PBE_Crypto crypto;
+	
 
-	public CryptoManager(int keyLength, String encoding) throws InvalidKeyLengthException{
-
-		if(!CryptoManager.isAESKeyLengthSupported(keyLength)){
-			throw new InvalidKeyLengthException(keyLength);
-		}
-		
-		selectedKeyLength = keyLength;
-				
-		cryptoAES = new PBE_Crypto_AES(selectedKeyLength, selectedEncoding);
-		cryptoDES = new PBE_Crypto_DES(DES_ITERATION_COUNT, selectedEncoding);
-		
-		selectedCryptoName = PBE_Crypto_AES.ALGO;
-	}
-	
-	public List<String> getCryptoNames(){
-		List<String> cryptos = new ArrayList<String>();
-		cryptos.add(PBE_Crypto_AES.ALGO);
-		cryptos.add(PBE_Crypto_DES.ALGO);
-		return cryptos;
-	}
-	
-	public String getSelectedCryptoName(){
-		return selectedCryptoName;
-	}
-	
-	public List<Integer> getKeyLengths(){
-		if(strongChiper)
-			return Arrays.asList(keyLengths);
-		else
-			return Arrays.asList(keyLengths[0]);
-	}
-	
-	public int getSelectedKeyLength(){
-		return selectedKeyLength;
-	}
-	
-	public void setSelectedKeyLength(int keyLength){
-		this.selectedKeyLength = keyLength;
-	}
-	
-	public String getSelectedEncoding(){
-		return selectedEncoding;
-	}
-	
-	public void setSelectedEncoding(String encoding){
-		this.selectedEncoding = encoding;
-	}
-	
-	/*
-	public void test0(){
-		
-		String text = "test1\nuffe\nabc123\ntest2\nuffe\nabc321";
-		char[] pwd = "123".toCharArray();
-		
-		System.out.println("Text: " + text + ", pwd: " + new String(pwd));
-	
-		
-		EncryptedData data = crypto.encrypt(text, pwd);
-		System.out.println("Encrypted[1]: " + data.getEncryptedBase64());
-		
-		File file = new File("batman.cry");
-		writeToFile(file, data);
-		
-		EncryptedData data2 = readFromFile(file);
-		System.out.println("Encrypted[2]: " + data2.getEncryptedBase64());
-		
-		String text2 = crypto.decrypt(data2, pwd);
-		
-		System.out.println(">>" + text2);
-	}
-	*/
-	
-	private static void test1(){
-		
-		int keyLength = 196;
-		String encoding = "UTF-8";
-		
-		String text = "test1\nuffe\nabc123\ntest2\nuffe\nabc321";
-		char[] pwd = "123".toCharArray();
-		
-		File file = new File("batman.cry");
-		
-		CryptoManager cryptoManager;
-		try {
-			cryptoManager = new CryptoManager(keyLength, encoding);
-		
-			cryptoManager.storeSecure(text, file, pwd);
-			
-			String encrypted = cryptoManager.readSecure(file, pwd);
-			System.out.println(">> " + encrypted);
-		
-		} catch (InvalidKeyLengthException e) {
-			System.out.println("Error - " + e.getMessage());
-		}
-	}
-	
-	public void storeSecure(String text, File file, char[] pwd) throws InvalidKeyLengthException{
-		
-		PBE_Crypto crypto = getSelectedCrypto();
-		
-		EncryptedData data = crypto.encrypt(text, pwd);
-		writeToFile(file, data);
-	}
-	
-	public String readSecure(File file, char[] pwd) throws IllegalArgumentException{
-		EncryptedData data = readFromFile(file);
-		
-		PBE_Crypto crypto = getSelectedCrypto();
-		
-		return crypto.decrypt(data, pwd);
-	}
-	
-	
-	public static boolean isAESKeyLengthSupported(int keyLength){
+	private static boolean isAESKeyLengthSupported(int keyLength){
 		
 		boolean supported = false;
 		String encoding = UTF8;
@@ -184,19 +54,85 @@ public class CryptoManager {
 		catch(Exception e){
 			e.printStackTrace();
 		}
-		System.out.println("[isAESKeyLengthSupported] keyLength=" + keyLength + ", supported=" + supported);
+		logger.debug("[isAESKeyLengthSupported] keyLength=" + keyLength + ", supported=" + supported);
 		return supported;
 	}
+
 	
-	private PBE_Crypto getSelectedCrypto(){
-		PBE_Crypto crypto = null;
-		if(PBE_Crypto_AES.ALGO.equals(getSelectedCryptoName())){
-			crypto = cryptoAES;
+	/**
+	 * Retrieve list of all known crypto names.
+	 * <ul>
+	 * <li>AES</li>
+	 * <li>DES</li>
+	 * </ul>
+	 * 
+	 * @return list of all known crypto names
+	 */
+	public static List<String> getCryptoNames(){
+		List<String> cryptos = new ArrayList<String>();
+		cryptos.add(PBE_Crypto_AES.ALGO);
+		cryptos.add(PBE_Crypto_DES.ALGO);
+		return cryptos;
+	}
+	
+	
+	/**
+	 * Retrieve all known key lengths supported by this current JRE.
+	 * <ul>
+	 * <li>128 - alwways</li>
+	 * <li>196 - if supported</li>
+	 * <li>256 - if supported</li>
+	 * </ul>
+	 * @return
+	 */
+	public static List<Integer> getKeyLengths(){
+
+		if(strongChiper)
+			return Arrays.asList(keyLengths);
+		else
+			return Arrays.asList(keyLengths[0]);
+	}
+
+	/**
+	 * Retrieve the default crypto.
+	 * 
+	 * @return name of default crypto
+	 */
+	public static String getDefaultCrypto(){
+		return defaultCrypto;
+	}
+	
+	public static int getDefaultKeyLength(){
+		
+		int keyLength = strongChiper ? keyLengths[2] : keyLengths[0];
+		return keyLength;
+	}
+	
+
+	public CryptoManager(String cryptoName, int keyLength) throws InvalidKeyLengthException{
+
+		if(!isValidKeyLength(keyLength)){
+			throw new InvalidKeyLengthException(keyLength);
 		}
-		else{
-			crypto = cryptoDES;
-		}
-		return crypto;
+				
+		crypto = PBE_Crypto_AES.ALGO.equals(cryptoName) ? new PBE_Crypto_AES(keyLength, UTF8) : new PBE_Crypto_DES(DES_ITERATION_COUNT, UTF8);
+	}
+	
+	private boolean isValidKeyLength(int keyLength){
+		return strongChiper || keyLength == keyLengths[0];
+	}
+
+
+	public void storeSecure(String text, File file, char[] pwd) throws InvalidKeyLengthException{
+		
+		EncryptedData data = crypto.encrypt(text, pwd);
+		writeToFile(file, data);
+	}
+	
+	public String readSecure(File file, char[] pwd) throws IllegalArgumentException{
+		EncryptedData data = readFromFile(file);
+		
+		return crypto.decrypt(data, pwd);
 	}
 	
 	private static EncryptedData readFromFile(File file) {
